@@ -4,7 +4,7 @@ import math
 
 h_window = 5
 match_threshold = 0.5
-h_threshold = 50000000
+h_threshold = 40000000
 
 
 def load_image():
@@ -18,10 +18,10 @@ def load_image():
     # coloured_img = cv2.imread("image_sets/panorama/pano1_0008.jpg")
     # img2 = cv2.imread("image_sets/panorama/pano1_0009.jpg", 0)
     # coloured_img2 = cv2.imread("image_sets/panorama/pano1_0009.jpg")
-    img = cv2.imread("image_sets/panorama/pano1_0010.jpg", 0)
-    coloured_img = cv2.imread("image_sets/panorama/pano1_0010.jpg")
-    img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg", 0)
-    coloured_img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg")
+    # img = cv2.imread("image_sets/panorama/pano1_0010.jpg", 0)
+    # coloured_img = cv2.imread("image_sets/panorama/pano1_0010.jpg")
+    # img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg", 0)
+    # coloured_img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg")
     # img = cv2.imread("image_sets/box.jpg", 0)
     # coloured_img = cv2.imread("image_sets/box.jpg")
     # img2 = cv2.imread("image_sets/box.jpg", 0)
@@ -34,10 +34,10 @@ def load_image():
     # coloured_img = cv2.imread("image_sets/x.jpeg")
     # img2 = cv2.imread("image_sets/x.jpeg", 0)
     # coloured_img2 = cv2.imread("image_sets/x.jpeg")
-    # img = cv2.imread("image_sets/yosemite/yosemite1.jpg", 0)
-    # coloured_img = cv2.imread("image_sets/yosemite/yosemite1.jpg")
-    # img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg", 0)
-    # coloured_img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg")
+    img = cv2.imread("image_sets/yosemite/yosemite1.jpg", 0)
+    coloured_img = cv2.imread("image_sets/yosemite/yosemite1.jpg")
+    img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg", 0)
+    coloured_img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg")
     # blurry_merged = np.hstack((graffiti, blur))
     # cv2.imshow('Image', graffiti)
     # cv2.waitKey()
@@ -273,7 +273,7 @@ def local_maximum(img, height, width):
 
 # def rotation_invariance(orientation_window, magnitude_window):
 #     orientation = [0, 0, 0, 0, 0, 0, 0, 0]
-#     # orientation_dict = {0: 0, 1: 45, 2: 90, 3: 135, 4: 180, 5: 225, 6: 270, 7: 315}
+#     orientation_dict = {0: 0, 1: 45, 2: 90, 3: 135, 4: 180, 5: 225, 6: 270, 7: 315}
 #     # orientation_window = np.degrees(orientation_window)
 #
 #     for x in range(0, 16):
@@ -294,7 +294,7 @@ def local_maximum(img, height, width):
 #
 #     for x in range(0, 16):
 #         for y in range(0, 16):
-#             orientation_window[x, y] = orientation_window[x, y] - max_value
+#             orientation_window[x, y] = orientation_window[x, y] - orientation_dict.get(max_index)
 #             if orientation_window[x, y] < 0:
 #                 orientation_window[x, y] += 360
 #
