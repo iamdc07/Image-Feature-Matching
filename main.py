@@ -3,13 +3,25 @@ import cv2
 import math
 
 h_window = 5
+match_threshold = 0.5
+h_threshold = 50000000
 
 
 def load_image():
-    img = cv2.imread("image_sets/graf/img1.ppm", 0)
-    coloured_img = cv2.imread("image_sets/graf/img1.ppm")
-    img2 = cv2.imread("image_sets/graf/img2.ppm", 0)
-    coloured_img2 = cv2.imread("image_sets/graf/img2.ppm")
+    # img = cv2.imread("image_sets/graf/img1.ppm", 0)
+    # coloured_img = cv2.imread("image_sets/graf/img1.ppm")
+    # img2 = cv2.imread("image_sets/graf/img2.ppm", 0)
+    # coloured_img2 = cv2.imread("image_sets/graf/img2.ppm")
+    # img2 = cv2.imread("image_sets/graf/img4.ppm", 0)
+    # coloured_img2 = cv2.imread("image_sets/graf/img4.ppm")
+    # img = cv2.imread("image_sets/panorama/pano1_0008.jpg", 0)
+    # coloured_img = cv2.imread("image_sets/panorama/pano1_0008.jpg")
+    # img2 = cv2.imread("image_sets/panorama/pano1_0009.jpg", 0)
+    # coloured_img2 = cv2.imread("image_sets/panorama/pano1_0009.jpg")
+    img = cv2.imread("image_sets/panorama/pano1_0010.jpg", 0)
+    coloured_img = cv2.imread("image_sets/panorama/pano1_0010.jpg")
+    img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg", 0)
+    coloured_img2 = cv2.imread("image_sets/panorama/pano1_0011.jpg")
     # img = cv2.imread("image_sets/box.jpg", 0)
     # coloured_img = cv2.imread("image_sets/box.jpg")
     # img2 = cv2.imread("image_sets/box.jpg", 0)
@@ -51,8 +63,8 @@ def load_image():
 
     feature_points = local_maximum(dst, height, width)
     print("Local Maximum:", len(feature_points))
-    # feature_points = adaptive_local_maximum(feature_points)
-    # print("Adaptive Local Maximum:", len(feature_points))
+    feature_points = adaptive_local_maximum(feature_points)
+    print("Adaptive Local Maximum:", len(feature_points))
     # feature_points.sort()
 
     sift_descriptor1 = sift(img, height, width, feature_points)
@@ -79,8 +91,8 @@ def load_image():
 
     feature_points = local_maximum(dst, height, width)
     print("Local Maximum:", len(feature_points))
-    # feature_points = adaptive_local_maximum(feature_points)
-    # print("Adaptive Local Maximum:", len(feature_points))
+    feature_points = adaptive_local_maximum(feature_points)
+    print("Adaptive Local Maximum:", len(feature_points))
     # feature_points.sort()
 
     sift_descriptor2 = sift(img2, height, width, feature_points)
@@ -103,8 +115,6 @@ def load_image():
     cv2.drawKeypoints(img2, keypoints=kp2, outImage=coloured_img2, color=(0, 0, 255),
                       flags=cv2.DRAW_MATCHES_FLAGS_DRAW_OVER_OUTIMG)
 
-    cv2.namedWindow("Detection", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow('image', 600, 600)
     cv2.imshow('Image 2', result)
     cv2.waitKey()
 
@@ -113,8 +123,8 @@ def find_matches(descriptor1, descriptor2):
     matches = []
     index1 = 0
     # theindex = 0
-    print("Descriptor 1 ", len(descriptor1))
-    print("Descriptor 2 ", len(descriptor2))
+    # print("Descriptor 1 ", len(descriptor1))
+    # print("Descriptor 2 ", len(descriptor2))
 
     while index1 < len(descriptor1):
         best_ssd = 10
@@ -154,7 +164,6 @@ def find_matches(descriptor1, descriptor2):
 
         # print(best_ssd)
         # exit(0)
-        ssd_ratio = 1
 
         if s_best_ssd != 0:
             ssd_ratio = best_ssd / s_best_ssd
@@ -162,10 +171,12 @@ def find_matches(descriptor1, descriptor2):
             index1 += 1
             continue
 
-        if ssd_ratio < 0.6:
+        # print("Best ssd:", best_ssd)
+        # print("2nd best ssd:", s_best_ssd)
+        # print("SSD Ratio:", ssd_ratio)
+
+        if ssd_ratio < match_threshold and (0.1 < best_ssd < 0.45):
             print("Best ssd:", best_ssd, " | Second Best ssd ", s_best_ssd, " | SSD ratio ", ssd_ratio)
-            # print("2nd best ssd:", s_best_ssd)
-            # print("SSD Ratio:", ssd_ratio)
             each_match = cv2.DMatch(index1, theindex, best_ssd)
             matches.append(each_match)
 
@@ -203,7 +214,7 @@ def harris_detector(img, height, width, offset, ix, iy):
             if trace != 0:
                 c = math.floor(det / trace)
                 # if c > 70000000:
-                if c > 45000000:
+                if c > h_threshold:
                     dst[y, x] = c
                     count += 1
 
@@ -260,7 +271,7 @@ def local_maximum(img, height, width):
     return feature_points
 
 
-# def rotation_invariance(orientation_window):
+# def rotation_invariance(orientation_window, magnitude_window):
 #     orientation = [0, 0, 0, 0, 0, 0, 0, 0]
 #     # orientation_dict = {0: 0, 1: 45, 2: 90, 3: 135, 4: 180, 5: 225, 6: 270, 7: 315}
 #     # orientation_window = np.degrees(orientation_window)
@@ -274,12 +285,12 @@ def local_maximum(img, height, width):
 #                 orientation_window[x, y] = orientation_window[x, y] % 360
 #
 #             index = math.floor(orientation_window[x, y] / 45)
-#             print(orientation_window[x, y], index)
+#             # print(orientation_window[x, y], index)
 #
 #             orientation[index] += 1
 #
 #     max_value = max(orientation)
-#     # max_index = orientation.index(max_value)
+#     max_index = orientation.index(max_value)
 #
 #     for x in range(0, 16):
 #         for y in range(0, 16):
@@ -294,7 +305,7 @@ def local_maximum(img, height, width):
 #     return orientation_window
 
 
-def rotation_invariance(orientation_window):
+def rotation_invariance(orientation_window, magnitude_window):
     orientation_window = np.array(orientation_window)
     feature_angle = orientation_window[8, 8]
     for y in np.arange(0, 16):
@@ -319,7 +330,7 @@ def adaptive_local_maximum(feature_points):
             if x == x_r and y == y_r:
                 continue
             if c < (0.9 * c_r):
-                d = math.sqrt(((x_r - x) ** 2) + ((y_r - y) ** 2))
+                d = math.sqrt(((y - x) ** 2) + ((y_r - x_r) ** 2))
 
                 if d < min_distance:
                     min_distance = d
@@ -330,7 +341,7 @@ def adaptive_local_maximum(feature_points):
 
     final.sort(key=lambda p: p[2])
 
-    return final[:900]
+    return final[:270]
 
     # temp_img = np.pad(img, (1, 1), 'constant', constant_values=(0, 0))
     #
@@ -380,7 +391,7 @@ def sift(img, height, width, feature_points):
             if y == 116 and x == 675:
                 print()
 
-            orientation_window = rotation_invariance(orientation_window)
+            orientation_window = rotation_invariance(orientation_window, magnitude_window)
 
             # print("Reg:", magnitude_window)
             magnitude_window = cv2.normalize(magnitude_window, None, norm_type=cv2.NORM_L2)
@@ -398,7 +409,7 @@ def sift(img, height, width, feature_points):
                     # print("NORMALIZED:", orientation_hist[0:10])
                     each_descriptor.append(orientation_hist)
 
-            normalized = cv2.normalize(np.array(each_descriptor).reshape(-1), None, norm_type=cv2.NORM_MINMAX)
+            normalized = cv2.normalize(np.array(each_descriptor).reshape(-1), None, norm_type=cv2.NORM_L2)
 
             sift_descriptor.append((y, x, normalized))
             # print("DESCRIPTOR ", sift_descriptor)
@@ -420,6 +431,8 @@ def calculate_grid_histogram(magnitude_grid, orientation_grid):
             # print("D:", degrees)
             if degrees < 0:
                 degrees += 360
+            elif degrees > 360:
+                degrees %= 360
 
             index = math.floor(degrees / 45)
 
