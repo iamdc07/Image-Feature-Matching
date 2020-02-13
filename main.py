@@ -4,7 +4,7 @@ import math
 
 h_window = 5
 match_threshold = 0.5
-h_threshold = 40000000
+h_threshold = 35000000
 
 
 def load_image():
@@ -341,7 +341,7 @@ def adaptive_local_maximum(feature_points):
 
     final.sort(key=lambda p: p[2])
 
-    return final[:270]
+    return final[:350]
 
     # temp_img = np.pad(img, (1, 1), 'constant', constant_values=(0, 0))
     #
