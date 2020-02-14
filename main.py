@@ -10,10 +10,10 @@ h_threshold = 30000000
 
 
 def load_image():
-    img = cv2.imread("image_sets/graf/img1.ppm", 0)
-    coloured_img = cv2.imread("image_sets/graf/img1.ppm")
-    img2 = cv2.imread("image_sets/graf/img2.ppm", 0)
-    coloured_img2 = cv2.imread("image_sets/graf/img2.ppm")
+    # img = cv2.imread("image_sets/graf/img1.ppm", 0)
+    # coloured_img = cv2.imread("image_sets/graf/img1.ppm")
+    # img = cv2.imread("image_sets/graf/img2.ppm", 0)
+    # coloured_img = cv2.imread("image_sets/graf/img2.ppm")
     # img2 = cv2.imread("image_sets/graf/img4.ppm", 0)
     # coloured_img2 = cv2.imread("image_sets/graf/img4.ppm")
     # img = cv2.imread("image_sets/a.png", 0)
@@ -40,10 +40,10 @@ def load_image():
     # coloured_img = cv2.imread("image_sets/x.jpeg")
     # img2 = cv2.imread("image_sets/x.jpeg", 0)
     # coloured_img2 = cv2.imread("image_sets/x.jpeg")
-    # img = cv2.imread("image_sets/yosemite/yosemite1.jpg", 0)
-    # coloured_img = cv2.imread("image_sets/yosemite/yosemite1.jpg")
-    # img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg", 0)
-    # coloured_img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg")
+    img = cv2.imread("image_sets/yosemite/yosemite1.jpg", 0)
+    coloured_img = cv2.imread("image_sets/yosemite/yosemite1.jpg")
+    img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg", 0)
+    coloured_img2 = cv2.imread("image_sets/yosemite/yosemite2.jpg")
     # blurry_merged = np.hstack((graffiti, blur))
     # cv2.imshow('Image', graffiti)
     # cv2.waitKey()
@@ -68,13 +68,13 @@ def load_image():
     # cv2.imshow('Image1', dst)
     # cv2.waitKey(10000)
 
-    feature_points = local_maximum(dst, height, width)
-    print("Local Maximum:", len(feature_points))
-    feature_points = adaptive_local_maximum(feature_points)
-    print("Adaptive Local Maximum:", len(feature_points))
+    feature_points1 = local_maximum(dst, height, width)
+    print("Local Maximum:", len(feature_points1))
+    feature_points1 = adaptive_local_maximum(feature_points1)
+    print("Adaptive Local Maximum:", len(feature_points1))
     # feature_points.sort()
 
-    sift_descriptor1 = sift(img, height, width, feature_points, ix, iy)
+    sift_descriptor1 = sift(img, height, width, feature_points1, ix, iy)
 
     kp1 = []
     # for x, y, d in feature_points:
@@ -97,27 +97,30 @@ def load_image():
     dst = sift_pyramid(img2, height, width, "")
     dst, ix, iy = harris_detector(dst, height, width, pad, ix, iy)
 
-    feature_points = local_maximum(dst, height, width)
-    print("Local Maximum:", len(feature_points))
-    feature_points = adaptive_local_maximum(feature_points)
-    print("Adaptive Local Maximum:", len(feature_points))
+    feature_points2 = local_maximum(dst, height, width)
+    print("Local Maximum:", len(feature_points2))
+    feature_points2 = adaptive_local_maximum(feature_points2)
+    print("Adaptive Local Maximum:", len(feature_points2))
     # feature_points.sort()
 
+    sift_descriptor2 = sift(img2, height, width, feature_points2, ix, iy)
 
-    sift_descriptor2 = sift(img2, height, width, feature_points, ix, iy)
+    matches, ssd_ratio_list = find_matches(sift_descriptor1, sift_descriptor2)
+    print("Matches:", len(matches))
 
-    matches = find_matches(sift_descriptor1, sift_descriptor2)
+    t = 0.35 * math.sqrt((width ** 2) + (height ** 2))
+    matches = improved_matching(feature_points1, feature_points2, t, ssd_ratio_list, matches)
+
+    print(len(matches), "improved matches found!")
 
     kp2 = []
-    # for x, y, d in feature_points:
-    #     kp2.append(cv2.KeyPoint(y, x, 1))
 
     for x, y, d in sift_descriptor2:
         kp2.append(cv2.KeyPoint(y, x, 1))
 
     print("Keypoints1:", len(kp1))
     print("Keypoints2:", len(kp2))
-    print("Matches:", len(matches))
+
 
     result = cv2.drawMatches(coloured_img, kp1, coloured_img2, kp2, matches, None)
 
@@ -130,6 +133,7 @@ def load_image():
 
 def find_matches(descriptor1, descriptor2):
     matches = []
+    ssd_ratio_list = []
     index1 = 0
     # theindex = 0
     # print("Descriptor 1 ", len(descriptor1))
@@ -190,10 +194,25 @@ def find_matches(descriptor1, descriptor2):
         # if best_ssd == s_best_ssd:
             each_match = cv2.DMatch(index1, theindex, best_ssd)
             matches.append(each_match)
+            ssd_ratio_list.append(ssd_ratio)
 
         index1 += 1
 
-    return matches
+    return matches, ssd_ratio_list
+
+
+def improved_matching(feature_points1, feature_points2, t, ssd_ratio, matches):
+    better_matches = []
+
+    for i in np.arange(0, len(matches)):
+        p1 = feature_points1[matches[i].queryIdx]
+        p2 = feature_points2[matches[i].trainIdx]
+
+        ssd = math.sqrt(((p2[0] - p1[0]) ** 2) + ((p2[1] - p2[1]) ** 2))
+        if ssd < t and ssd_ratio[i] < 0.9:
+            better_matches.append(matches[i])
+
+    return better_matches
 
 
 def harris_detector(img, height, width, offset, ix, iy):
